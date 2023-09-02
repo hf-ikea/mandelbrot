@@ -9,16 +9,7 @@ public class MandelbrotSet
     {
         Bitmap bmp = new Bitmap(1000, 1000);
 
-        double x0;
-        double y0;
-        double x;
-        double y;
-        double x2 = 0;
-        double y2 = 0;
-
         int maxIterations = 200;
-        int i = 0;
-
 
         List<Color> colorArray = GetGradients(Color.FromArgb(255, 255, 0, 0), Color.FromArgb(255, 0, 255, 255), maxIterations + 1);
 
@@ -26,15 +17,15 @@ public class MandelbrotSet
         {
             for(int pixY = 0; pixY < bmp.Height; pixY++)
             {
-                x0 = (pixX - (0.5 * bmp.Width)) * 2;
-                y0 = (pixY - (0.5 * bmp.Height)) * 2;
+                double x0 = (pixX - (0.5 * bmp.Width)) * 2;
+                double y0 = (pixY - (0.5 * bmp.Height)) * 2;
                 x0 /= bmp.Width;
                 y0 /= bmp.Height;
-                x = 0;
-                y = 0;
-                i = 0;
-                x2 = 0;
-                y2 = 0;
+                double x = 0;
+                double y = 0;
+                int i = 0;
+                double x2 = 0;
+                double y2 = 0;
 
                 while((x2 + y2) <= 4 && i < maxIterations)
                 {
