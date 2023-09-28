@@ -10,13 +10,13 @@ public class MandelbrotSet
     {
         int sizeX = 1000;
         int sizeY = 1000;
-        int maxIterations = 1000;
+        int maxIterations = 200;
 
         int[,] iterationCounts = new int[sizeX, sizeY];
         int[] numIterationsPerPixel = new int[maxIterations + 1];
         double[,] hue = new double[sizeX, sizeY];
 
-        List<Color> palette = GetGradients(Color.FromArgb(0, 0, 0), Color.FromArgb(255, 73, 0), maxIterations); // create linear pallete, works okay
+        List<Color> palette = GetGradients(Color.FromArgb(0, 57, 143), Color.FromArgb(0, 0, 0), maxIterations); // create linear pallete, works okay
         Bitmap bmp = new Bitmap(sizeX, sizeY);
 
         // loop through every pixel
@@ -24,8 +24,9 @@ public class MandelbrotSet
         {
             for(int pixY = 0; pixY < sizeY; pixY++)
             {
-                double x0 = (pixX - (0.5 * sizeX)) * 4;  // last constant is sort of division factor
-                double y0 = (pixY - (0.5 * sizeY)) * 4;
+                //       translation ▼   size divisor ▼
+                double x0 = (pixX - (0.65 * sizeX)) * 3;
+                double y0 = (pixY - (0.5  * sizeY)) * 3;
                 x0 /= sizeX;
                 y0 /= sizeY;
                 double x = 0;
@@ -45,8 +46,6 @@ public class MandelbrotSet
                 }
 
                 iterationCounts[pixX,pixY] = i;
-
-                //Console.WriteLine("Real: " + x.ToString() + ", Imaginary: " + y.ToString());
             }
         }
 
@@ -84,8 +83,7 @@ public class MandelbrotSet
         {
             for(int y = 0; y < sizeY; y++)
             {
-                //bmp.SetPixel(x, y, palette[maxIterations - 1]);
-                bmp.SetPixel(x, y, palette[(int)Math.Round(hue[x, y] * (maxIterations - 1))]);
+                bmp.SetPixel(x, y, palette[(int)Math.Round(Math.Pow(hue[x, y], 5) * (maxIterations - 1))]); // exponetial coloring is more pleasing
             }
         } 
 
