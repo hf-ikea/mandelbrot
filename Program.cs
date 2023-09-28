@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.Drawing.Imaging;
 
+// https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set
 // Manually simulates a complex number data type using two seperate variables...
 
 public class MandelbrotSet
@@ -9,23 +10,22 @@ public class MandelbrotSet
     {
         int sizeX = 1000;
         int sizeY = 1000;
-        int maxIterations = 200;
+        int maxIterations = 1000;
 
         int[,] iterationCounts = new int[sizeX, sizeY];
         int[] numIterationsPerPixel = new int[maxIterations + 1];
         double[,] hue = new double[sizeX, sizeY];
 
-        List<Color> colorArray = GetGradients(Color.FromArgb(255, 255, 0, 0), Color.FromArgb(255, 0, 255, 255), maxIterations + 1);
+        List<Color> palette = GetGradients(Color.FromArgb(0, 0, 0), Color.FromArgb(255, 73, 0), maxIterations); // create linear pallete, works okay
         Bitmap bmp = new Bitmap(sizeX, sizeY);
 
         // loop through every pixel
-
         for(int pixX = 0; pixX < sizeX; pixX++)
         {
             for(int pixY = 0; pixY < sizeY; pixY++)
             {
-                double x0 = (pixX - (0.5 * sizeX)) * 2;
-                double y0 = (pixY - (0.5 * sizeY)) * 2;
+                double x0 = (pixX - (0.5 * sizeX)) * 4;  // last constant is sort of division factor
+                double y0 = (pixY - (0.5 * sizeY)) * 4;
                 x0 /= sizeX;
                 y0 /= sizeY;
                 double x = 0;
@@ -35,7 +35,6 @@ public class MandelbrotSet
                 double y2 = 0;
 
                 // run until escape, save iteration count in array
-
                 while((x2 + y2) <= 4 && i < maxIterations)
                 {
                     y = 2 * x * y + y0;
@@ -48,12 +47,10 @@ public class MandelbrotSet
                 iterationCounts[pixX,pixY] = i;
 
                 //Console.WriteLine("Real: " + x.ToString() + ", Imaginary: " + y.ToString());
-                //bmp.SetPixel(pixX, pixY, colorArray[i]);
             }
         }
 
         // Start histogram coloring
-
         for(int x = 0; x < sizeX; x++)
         {
             for(int y = 0; y < sizeY; y++)
@@ -63,6 +60,7 @@ public class MandelbrotSet
             }
         }
 
+        // calculate totals for normalization
         double total = 0;
         for(int i = 0; i < maxIterations; i++)
         {
@@ -82,12 +80,12 @@ public class MandelbrotSet
         }
 
         // finish histogram, start coloring bitmap
-        
         for(int x = 0; x < sizeX; x++)
         {
             for(int y = 0; y < sizeY; y++)
             {
-                bmp.SetPixel(x, y, colorArray[(int)Math.Round(hue[x, y] * maxIterations)]);
+                //bmp.SetPixel(x, y, palette[maxIterations - 1]);
+                bmp.SetPixel(x, y, palette[(int)Math.Round(hue[x, y] * (maxIterations - 1))]);
             }
         } 
 
@@ -99,17 +97,15 @@ public class MandelbrotSet
     public static List<Color> GetGradients(Color start, Color end, int steps)
     {
         List<Color> gradients = new List<Color>();
-        int stepA = (end.A - start.A) / (steps - 1);
-        int stepR = (end.R - start.R) / (steps - 1);
-        int stepG = (end.G - start.G) / (steps - 1);
-        int stepB = (end.B - start.B) / (steps - 1);
+        float stepR = (end.R - start.R) / (float)steps;
+        float stepG = (end.G - start.G) / (float)steps;
+        float stepB = (end.B - start.B) / (float)steps;
 
         for (int i = 0; i < steps; i++)
         {
-            gradients.Add(Color.FromArgb(start.A + (stepA * i),
-                                         start.R + (stepR * i),
-                                         start.G + (stepG * i),
-                                         start.B + (stepB * i)));
+            gradients.Add(Color.FromArgb((int)(start.R + (stepR * i)),
+                                         (int)(start.G + (stepG * i)),
+                                         (int)(start.B + (stepB * i))));
         }
 
         return gradients;
