@@ -55,7 +55,7 @@ public class MandelbrotSet
 
         // loop through every line
         Parallel.For(0, sizeY, line => {
-            RenderLine(line, ref iterationCounts);  // Parallel
+            RenderLine(line, ref iterationCounts);  // Really simple parallel processing
         });
 
         // for(int line = 0; line < sizeY; line++)
@@ -107,6 +107,17 @@ public class MandelbrotSet
         bmp.Save("out.png", ImageFormat.Png);
 
         // done!
+    }
+
+    public static Color LinearInterpolateColor(Color color1, Color color2, float percent)
+    {
+        Color color = Color.FromArgb(
+            (int)MathF.Round(MathF.Abs(color1.R - color2.R)  * percent),
+            (int)MathF.Round(MathF.Abs(color1.G - color2.G)  * percent),
+            (int)MathF.Round(MathF.Abs(color1.B - color2.B)  * percent)
+        );
+
+        return color;
     }
 
     public static List<Color> GetGradients(Color start, Color end, int steps)
