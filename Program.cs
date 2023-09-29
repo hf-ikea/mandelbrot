@@ -14,13 +14,13 @@ public class MandelbrotSet
 
     public static int[,]? iterationCounts;
 
-    public static void RenderLine(int LineNum, ref int[,] iterationCounts)
+    public static void RenderLine(int lineNum, ref int[,] iterationCounts)
     {
         for(int pixX = 0; pixX < sizeX; pixX++)
         {
             //       translation ▼   size divisor ▼
             double x0 = (pixX - (0.65 * sizeX)) * 3;
-            double y0 = (LineNum - (0.5  * sizeY)) * 3;
+            double y0 = (lineNum - (0.5  * sizeY)) * 3;
             x0 /= sizeX;
             y0 /= sizeY;
             double x = 0;
@@ -39,7 +39,7 @@ public class MandelbrotSet
                 i++;
             }
 
-            iterationCounts[pixX, LineNum] = i;
+            iterationCounts[pixX, lineNum] = i;
         }
     }
     public static void Main()
