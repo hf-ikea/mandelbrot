@@ -8,8 +8,8 @@ using System.Drawing.Imaging;
 
 public class MandelbrotSet
 {
-    public readonly static int sizeX = 5000;
-    public readonly static int sizeY = 5000;
+    public readonly static int sizeX = 1000;
+    public readonly static int sizeY = 1000;
     public readonly static int maxIteration = 200;
 
     public static int[,]? iterationCounts;
