@@ -1,6 +1,7 @@
-﻿using System.Drawing;
+﻿#pragma warning disable CS0162
+
+using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO.Compression;
 using System.Runtime.InteropServices;
 
 // https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set
@@ -10,9 +11,9 @@ public class MandelbrotSet
 {
     public const int sizeX = 1000;
     public const int sizeY = 1000;
-    public const int maxIteration = 64;
+    public const int maxIteration = 32;
     public const bool smooth = false;
-    public const bool histogram = true; // both cannot be true
+    public const bool histogram = false; // both cannot be true
 
     //                              translation ▼
     public readonly static float xTranslation = 0.65f * sizeX;
@@ -83,20 +84,19 @@ public class MandelbrotSet
             }
             else
             {
-                SetPixelColor(pixX, lineNum, Palette(i / maxIteration));
+                SetPixelColor(pixX, lineNum, palette[(int)i]);
             }
         }
     }
     public static void Main()
     {
+        List<Color> palette = GenerateGradient(maxIteration + 2); // create linear palette, works okay
         iterationCounts = new int[sizeX, sizeY];
-
-        List<Color> palette = GetGradients(Color.FromArgb(0, 140, 255), Color.FromArgb(0, 0, 0), maxIteration + 1); // create linear palette, works okay
 
         // https://stackoverflow.com/questions/59454394/how-to-create-and-write-an-image-from-a-2d-array
         imageBits = new int[sizeX * sizeY];
         GCHandle handle = GCHandle.Alloc(imageBits, GCHandleType.Pinned);
-        Bitmap bmp = new Bitmap(sizeX, sizeY, sizeX * 4, PixelFormat.Format32bppPArgb, handle.AddrOfPinnedObject());
+        Bitmap bmp = new(sizeX, sizeY, sizeX * 4, PixelFormat.Format32bppPArgb, handle.AddrOfPinnedObject());
 
         Console.WriteLine("Start escape algorithm");
 
@@ -192,20 +192,40 @@ public class MandelbrotSet
         return color;
     }
 
-    public static List<Color> GetGradients(Color start, Color end, int steps)
+    public static List<Color> GenerateGradient(int numElements)
     {
-        List<Color> gradients = new List<Color>();
-        float stepR = (end.R - start.R) / (float)steps;
-        float stepG = (end.G - start.G) / (float)steps;
-        float stepB = (end.B - start.B) / (float)steps;
+        List<Color> gradientColors = new List<Color>();
 
-        for (int i = 0; i < steps; i++)
+        // Define the starting and ending colors
+        Color startColor = Color.Blue;
+        Color middleColor = Color.Red;
+        Color endColor = Color.Lime;
+
+        // Calculate the step sizes for each color component (R, G, B)
+        int rStep = (middleColor.R - startColor.R) / (numElements / 2);
+        int gStep = (middleColor.G - startColor.G) / (numElements / 2);
+        int bStep = (middleColor.B - startColor.B) / (numElements / 2);
+
+        for (int i = 0; i < numElements / 2; i++)
         {
-            gradients.Add(Color.FromArgb((int)(start.R + (stepR * i)),
-                                         (int)(start.G + (stepG * i)),
-                                         (int)(start.B + (stepB * i))));
+            int r = startColor.R + i * rStep;
+            int g = startColor.G + i * gStep;
+            int b = startColor.B + i * bStep;
+            gradientColors.Add(Color.FromArgb(r, g, b));
         }
 
-        return gradients;
+        rStep = (endColor.R - middleColor.R) / (numElements / 2);
+        gStep = (endColor.G - middleColor.G) / (numElements / 2);
+        bStep = (endColor.B - middleColor.B) / (numElements / 2);
+
+        for (int i = 0; i < numElements / 2; i++)
+        {
+            int r = middleColor.R + i * rStep;
+            int g = middleColor.G + i * gStep;
+            int b = middleColor.B + i * bStep;
+            gradientColors.Add(Color.FromArgb(r, g, b));
+        }
+
+        return gradientColors;
     }
 }
