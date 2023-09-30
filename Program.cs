@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 
 public class MandelbrotSet
 {
-    public const int sizeX = 10000;
-    public const int sizeY = 10000;
-    public const int maxIteration = 1000;
+    public const int sizeX = 1000;
+    public const int sizeY = 1000;
+    public const int maxIteration = 64;
     public const bool smooth = false;
     public const bool histogram = true; // both cannot be true
 
@@ -90,7 +90,6 @@ public class MandelbrotSet
     public static void Main()
     {
         iterationCounts = new int[sizeX, sizeY];
-        Color[,] image = new Color[sizeX, sizeY];
 
         List<Color> palette = GetGradients(Color.FromArgb(0, 140, 255), Color.FromArgb(0, 0, 0), maxIteration + 1); // create linear palette, works okay
 
