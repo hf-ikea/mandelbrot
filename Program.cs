@@ -195,13 +195,11 @@ public class MandelbrotSet
     public static List<Color> GenerateGradient(int numElements)
     {
         List<Color> gradientColors = new List<Color>();
-
-        // Define the starting and ending colors
+        
         Color startColor = Color.Blue;
         Color middleColor = Color.Red;
         Color endColor = Color.Lime;
 
-        // Calculate the step sizes for each color component (R, G, B)
         int rStep = (middleColor.R - startColor.R) / (numElements / 2);
         int gStep = (middleColor.G - startColor.G) / (numElements / 2);
         int bStep = (middleColor.B - startColor.B) / (numElements / 2);
