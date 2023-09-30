@@ -95,7 +95,7 @@ public class MandelbrotSet
         List<Color> palette = GetGradients(Color.FromArgb(0, 140, 255), Color.FromArgb(0, 0, 0), maxIteration + 1); // create linear palette, works okay
 
         // https://stackoverflow.com/questions/59454394/how-to-create-and-write-an-image-from-a-2d-array
-        int[] imageBits = new int[sizeX * sizeY];
+        imageBits = new int[sizeX * sizeY];
         GCHandle handle = GCHandle.Alloc(imageBits, GCHandleType.Pinned);
         Bitmap bmp = new Bitmap(sizeX, sizeY, sizeX * 4, PixelFormat.Format32bppPArgb, handle.AddrOfPinnedObject());
 
@@ -160,8 +160,8 @@ public class MandelbrotSet
             {
                 double huePoint = hue[x, y];
                 
-                //SetPixelColor(x, y, Palette(Math.Pow(huePoint, 5)), ref imageBits);
-                SetPixelColor(x, y, palette[(int)Math.Round(Math.Pow(huePoint, 5) * (maxIteration - 1))]); // exponetial coloring is more pleasing
+                SetPixelColor(x, y, Palette(Math.Pow(huePoint, 5)));
+                //SetPixelColor(x, y, palette[(int)Math.Round(Math.Pow(huePoint, 5) * (maxIteration - 1))]); // exponetial coloring is more pleasing
             }
         });
 
