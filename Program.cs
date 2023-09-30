@@ -87,8 +87,6 @@ public class MandelbrotSet
     public static void Main()
     {
         iterationCounts = new int[sizeX, sizeY];
-        int[] numIterationsPerPixel = new int[maxIteration + 1];
-        double[,] hue = new double[sizeX, sizeY];
         Color[,] image = new Color[sizeX, sizeY];
 
         List<Color> palette = GetGradients(Color.FromArgb(255, 170, 23), Color.FromArgb(0, 0, 0), maxIteration + 1); // create linear palette, works okay
@@ -107,47 +105,60 @@ public class MandelbrotSet
 
         Console.WriteLine("Finish escape algorithm");
 
-        // // Start histogram coloring
-        // for(int x = 0; x < sizeX; x++)
-        // {
-        //     for(int y = 0; y < sizeY; y++)
-        //     {
-        //         int i = iterationCounts[x, y];
-        //         numIterationsPerPixel[i]++;
-        //     }
-        // }
-
-        // // calculate totals for normalization
-        // double total = 0;
-        // for(int i = 0; i < maxIteration; i++)
-        // {
-        //     total += numIterationsPerPixel[i];
-        // }
-
-        // for(int x = 0; x < sizeX; x++)
-        // {
-        //     for(int y = 0; y < sizeY; y++)
-        //     {
-        //         int iteration = iterationCounts[x, y];
-        //         for(int i = 0; i < iteration; i++)
-        //         {
-        //             hue[x, y] += numIterationsPerPixel[i] / total;
-        //         }
-        //     }
-        // }
-
-        // // finish histogram, start coloring bitmap
-        // for(int x = 0; x < sizeX; x++)
-        // {
-        //     for(int y = 0; y < sizeY; y++)
-        //     {
-        //         bmp.SetPixel(x, y, palette[(int)Math.Round(Math.Pow(hue[x, y], 5) * (maxIteration - 1))]); // exponetial coloring is more pleasing
-        //     }
-        // } 
+        if(histogram && !smooth)
+        {
+            HistogramColoring(iterationCounts, ref imageBits, palette);
+        }
 
         bmp.Save("out.png", ImageFormat.Png);
 
         Console.WriteLine("Done!");
+    }
+
+    public static void HistogramColoring(int[,] iterationCounts, ref int[] imageBits, List<Color> palette)
+    {
+        Console.WriteLine("Start Histogram Coloring");
+        int[] numIterationsPerPixel = new int[maxIteration + 1];
+        double[,] hue = new double[sizeX, sizeY];
+        
+        // Start histogram coloring
+        for(int x = 0; x < sizeX; x++)
+        {
+            for(int y = 0; y < sizeY; y++)
+            {
+                int i = iterationCounts[x, y];
+                numIterationsPerPixel[i]++;
+            }
+        }
+
+        // calculate totals for normalization
+        double total = 0;
+        for(int i = 0; i < maxIteration; i++)
+        {
+            total += numIterationsPerPixel[i];
+        }
+
+        for(int x = 0; x < sizeX; x++)
+        {
+            for(int y = 0; y < sizeY; y++)
+            {
+                int iteration = iterationCounts[x, y];
+                for(int i = 0; i < iteration; i++)
+                {
+                    hue[x, y] += numIterationsPerPixel[i] / total;
+                }
+            }
+        }
+
+        // finish histogram, start coloring bitmap
+        for(int x = 0; x < sizeX; x++)
+        {
+            for(int y = 0; y < sizeY; y++)
+            {
+                imageBits[x + (y * sizeX)] = palette[(int)Math.Round(Math.Pow(hue[x, y], 5) * (maxIteration - 1))].ToArgb(); // exponetial coloring is more pleasing
+            }
+        } 
+
     }
 
     public static void SetPixelColor(int x, int y, Color color, ref int[] imageBits)
