@@ -91,7 +91,7 @@ public class MandelbrotSet
         double[,] hue = new double[sizeX, sizeY];
         Color[,] image = new Color[sizeX, sizeY];
 
-        List<Color> palette = GetGradients(Color.FromArgb(255, 170, 23), Color.FromArgb(0, 0, 0), maxIteration + 1); // create linear pallete, works okay
+        List<Color> palette = GetGradients(Color.FromArgb(255, 170, 23), Color.FromArgb(0, 0, 0), maxIteration + 1); // create linear palette, works okay
 
         // https://stackoverflow.com/questions/59454394/how-to-create-and-write-an-image-from-a-2d-array
         int[] imageBits = new int[sizeX * sizeY];
