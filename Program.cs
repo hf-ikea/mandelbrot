@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 
 public class MandelbrotSet
 {
-    public const int sizeX = 2000;
-    public const int sizeY = 2000;
-    public const int maxIteration = 400;
+    public const int sizeX = 10000;
+    public const int sizeY = 10000;
+    public const int maxIteration = 1000;
     public const bool smooth = false;
     public const bool histogram = true; // both cannot be true
 
@@ -154,14 +154,13 @@ public class MandelbrotSet
         }
 
         // finish histogram, start coloring bitmap
-
         Parallel.For(0, sizeY, y => {
             for(int x = 0; x < sizeX; x++)
             {
                 double huePoint = hue[x, y];
                 
-                SetPixelColor(x, y, Palette(Math.Pow(huePoint, 5)));
-                //SetPixelColor(x, y, palette[(int)Math.Round(Math.Pow(huePoint, 5) * (maxIteration - 1))]); // exponetial coloring is more pleasing
+                //SetPixelColor(x, y, Palette(Math.Pow(huePoint, 5)));
+                SetPixelColor(x, y, palette[(int)Math.Round(Math.Pow(huePoint, 5) * (maxIteration - 1))]); // exponetial coloring is more pleasing
             }
         });
 
