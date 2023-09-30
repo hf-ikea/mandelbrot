@@ -157,7 +157,7 @@ public class MandelbrotSet
             {
                 double huePoint = hue[x, y];
                 
-                SetPixelColor(x, y, Palette((int)huePoint), ref imageBits);
+                SetPixelColor(x, y, Palette(huePoint), ref imageBits);
                 //SetPixelColor(x, y, palette[(int)Math.Round(Math.Pow(huePoint, 5) * (maxIteration - 1))],ref imageBits); // exponetial coloring is more pleasing
             }
         } 
