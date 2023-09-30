@@ -1,8 +1,5 @@
-﻿using System;
-using System.Threading;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Drawing.Imaging;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 // https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set
