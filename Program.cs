@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO.Compression;
 using System.Runtime.InteropServices;
 
 // https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set
@@ -17,7 +18,9 @@ public class MandelbrotSet
     public readonly static float xTranslation = 0.65f * sizeX;
     public readonly static float yTranslation = 0.50f * sizeX;
 
-    public static int[,]? iterationCounts;
+    public static int[,]? iterationCounts = new int[sizeX, sizeY];
+
+    public static int[] imageBits = new int[sizeX * sizeY];
 
     public static double MandelbrotIteration(int pixX, int pixY, bool smooth)
     {
@@ -55,7 +58,7 @@ public class MandelbrotSet
         return i;
     }
 
-    public static void RenderLine(int lineNum, ref int[,] iterationCounts, List<Color> palette, ref int[] imageBits, bool smooth)
+    public static void RenderLine(int lineNum, ref int[,] iterationCounts, List<Color> palette, bool smooth)
     {
         for(int pixX = 0; pixX < sizeX; pixX++)
         {
@@ -67,11 +70,11 @@ public class MandelbrotSet
                     Color color1 = Palette((i - 1.0) / maxIteration);
                     Color color2 = Palette( i        / maxIteration);
 
-                    SetPixelColor(pixX, lineNum, LinearInterpolateColor(color1, color2, i % 1.0), ref imageBits);
+                    SetPixelColor(pixX, lineNum, LinearInterpolateColor(color1, color2, i % 1.0));
                 }
                 else
                 {
-                    SetPixelColor(pixX, lineNum, Color.Black, ref imageBits);
+                    SetPixelColor(pixX, lineNum, Color.Black);
                 }
             }
             else if(histogram)
@@ -80,7 +83,7 @@ public class MandelbrotSet
             }
             else
             {
-                SetPixelColor(pixX, lineNum, Palette(i / maxIteration), ref imageBits);
+                SetPixelColor(pixX, lineNum, Palette(i / maxIteration));
             }
         }
     }
@@ -89,7 +92,7 @@ public class MandelbrotSet
         iterationCounts = new int[sizeX, sizeY];
         Color[,] image = new Color[sizeX, sizeY];
 
-        List<Color> palette = GetGradients(Color.FromArgb(255, 170, 23), Color.FromArgb(0, 0, 0), maxIteration + 1); // create linear palette, works okay
+        List<Color> palette = GetGradients(Color.FromArgb(0, 140, 255), Color.FromArgb(0, 0, 0), maxIteration + 1); // create linear palette, works okay
 
         // https://stackoverflow.com/questions/59454394/how-to-create-and-write-an-image-from-a-2d-array
         int[] imageBits = new int[sizeX * sizeY];
@@ -100,14 +103,14 @@ public class MandelbrotSet
 
         // loop through every line
         Parallel.For(0, sizeY, line => {
-            RenderLine(line, ref iterationCounts, palette, ref imageBits, smooth);  // Really simple parallel processing
+            RenderLine(line, ref iterationCounts, palette, smooth);  // Really simple parallel processing
         });
 
         Console.WriteLine("Finish escape algorithm");
 
         if(histogram && !smooth)
         {
-            HistogramColoring(iterationCounts, ref imageBits, palette);
+            HistogramColoring(iterationCounts, palette);
         }
 
         bmp.Save("out.png", ImageFormat.Png);
@@ -115,7 +118,7 @@ public class MandelbrotSet
         Console.WriteLine("Done!");
     }
 
-    public static void HistogramColoring(int[,] iterationCounts, ref int[] imageBits, List<Color> palette)
+    public static void HistogramColoring(int[,] iterationCounts, List<Color> palette)
     {
         Console.WriteLine("Start Histogram Coloring");
         int[] numIterationsPerPixel = new int[maxIteration + 1];
@@ -151,20 +154,20 @@ public class MandelbrotSet
         }
 
         // finish histogram, start coloring bitmap
-        for(int x = 0; x < sizeX; x++)
-        {
-            for(int y = 0; y < sizeY; y++)
+
+        Parallel.For(0, sizeY, y => {
+            for(int x = 0; x < sizeX; x++)
             {
                 double huePoint = hue[x, y];
                 
-                SetPixelColor(x, y, Palette(huePoint), ref imageBits);
-                //SetPixelColor(x, y, palette[(int)Math.Round(Math.Pow(huePoint, 5) * (maxIteration - 1))],ref imageBits); // exponetial coloring is more pleasing
+                //SetPixelColor(x, y, Palette(Math.Pow(huePoint, 5)), ref imageBits);
+                SetPixelColor(x, y, palette[(int)Math.Round(Math.Pow(huePoint, 5) * (maxIteration - 1))]); // exponetial coloring is more pleasing
             }
-        } 
+        });
 
     }
 
-    public static void SetPixelColor(int x, int y, Color color, ref int[] imageBits)
+    public static void SetPixelColor(int x, int y, Color color)
     {
         imageBits[x + (y * sizeX)] = color.ToArgb();
     }
