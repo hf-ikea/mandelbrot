@@ -10,7 +10,8 @@ public class MandelbrotSet
     public const int sizeX = 5000;
     public const int sizeY = 5000;
     public const int maxIteration = 400;
-    public const bool smooth = true;
+    public const bool smooth = false;
+    public const bool histogram = true; // both cannot be true
 
     //                              translation ▼
     public readonly static float xTranslation = 0.65f * sizeX;
@@ -73,12 +74,14 @@ public class MandelbrotSet
                     imageBits[pixX + (lineNum * sizeX)] = unchecked((int)0xFF000000);
                 }
             }
+            else if(histogram)
+            {
+                iterationCounts[pixX, lineNum] = (int)i;
+            }
             else
             {
                 imageBits[pixX + (lineNum * sizeX)] = Palette(i / maxIteration).ToArgb();
             }
-
-            //iterationCounts[pixX, lineNum] = i;
         }
     }
     public static void Main()
@@ -101,10 +104,6 @@ public class MandelbrotSet
         Parallel.For(0, sizeY, line => {
             RenderLine(line, ref iterationCounts, palette, ref imageBits, smooth);  // Really simple parallel processing
         });
-        // for(int line = 0; line < sizeY; line++)
-        // {
-        //     RenderLine(line, ref iterationCounts, ref image, palette);  // Single thread
-        // }
 
         Console.WriteLine("Finish escape algorithm");
 
