@@ -7,8 +7,8 @@ using System.Runtime.InteropServices;
 
 public class MandelbrotSet
 {
-    public const int sizeX = 5000;
-    public const int sizeY = 5000;
+    public const int sizeX = 2000;
+    public const int sizeY = 2000;
     public const int maxIteration = 400;
     public const bool smooth = false;
     public const bool histogram = true; // both cannot be true
@@ -66,12 +66,12 @@ public class MandelbrotSet
                 {
                     Color color1 = Palette((i - 1.0) / maxIteration);
                     Color color2 = Palette( i        / maxIteration);
-                    
-                    imageBits[pixX + (lineNum * sizeX)] = LinearInterpolateColor(color1, color2, i % 1.0).ToArgb();
+
+                    SetPixelColor(pixX, lineNum, LinearInterpolateColor(color1, color2, i % 1.0), ref imageBits);
                 }
                 else
                 {
-                    imageBits[pixX + (lineNum * sizeX)] = unchecked((int)0xFF000000);
+                    SetPixelColor(pixX, lineNum, Color.Black, ref imageBits);
                 }
             }
             else if(histogram)
@@ -80,7 +80,7 @@ public class MandelbrotSet
             }
             else
             {
-                imageBits[pixX + (lineNum * sizeX)] = Palette(i / maxIteration).ToArgb();
+                SetPixelColor(pixX, lineNum, Palette(i / maxIteration), ref imageBits);
             }
         }
     }
@@ -119,8 +119,8 @@ public class MandelbrotSet
     {
         Console.WriteLine("Start Histogram Coloring");
         int[] numIterationsPerPixel = new int[maxIteration + 1];
-        double[,] hue = new double[sizeX, sizeY];
-        
+        double[,] hue = new double[sizeX, sizeY]; // between 0 and 1
+
         // Start histogram coloring
         for(int x = 0; x < sizeX; x++)
         {
@@ -155,7 +155,10 @@ public class MandelbrotSet
         {
             for(int y = 0; y < sizeY; y++)
             {
-                imageBits[x + (y * sizeX)] = palette[(int)Math.Round(Math.Pow(hue[x, y], 5) * (maxIteration - 1))].ToArgb(); // exponetial coloring is more pleasing
+                double huePoint = hue[x, y];
+                
+                SetPixelColor(x, y, Palette((int)huePoint), ref imageBits);
+                //SetPixelColor(x, y, palette[(int)Math.Round(Math.Pow(huePoint, 5) * (maxIteration - 1))],ref imageBits); // exponetial coloring is more pleasing
             }
         } 
 
@@ -163,8 +166,7 @@ public class MandelbrotSet
 
     public static void SetPixelColor(int x, int y, Color color, ref int[] imageBits)
     {
-        int index = x + (y * sizeX);
-        imageBits[index] = color.ToArgb();
+        imageBits[x + (y * sizeX)] = color.ToArgb();
     }
 
     public static Color Palette(double percent)
