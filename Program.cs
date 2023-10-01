@@ -9,8 +9,8 @@ using System.Runtime.InteropServices;
 
 public class MandelbrotSet
 {
-    public const int sizeX = 10000;
-    public const int sizeY = 10000;
+    public const int sizeX = 3000;
+    public const int sizeY = 3000;
     public const int maxIteration = 512;
     public const bool smooth = false;
     public const bool histogram = true; // both cannot be true
@@ -110,6 +110,8 @@ public class MandelbrotSet
             RenderLine(line, ref iterationCounts, palette, smooth);  // Really simple parallel processing
             lock(countLock) { UpdateProgressBar(++count, sizeY, progress); }
         });
+
+        progress.Dispose();
         Console.WriteLine("Done.");
 
         Console.WriteLine("Finish escape algorithm");

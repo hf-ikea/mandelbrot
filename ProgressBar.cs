@@ -6,7 +6,7 @@ using System.Text;
 /// </summary>
 public class ProgressBar : IDisposable, IProgress<double> {
 	private const int blockCount = 16;
-	private readonly TimeSpan animationInterval = TimeSpan.FromSeconds(1.0 / 4);
+	private readonly TimeSpan animationInterval = TimeSpan.FromSeconds(1.0 / 10);
 	private const string animation = @"|/-\";
 
 	private readonly Timer timer;
