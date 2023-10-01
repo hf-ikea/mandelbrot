@@ -9,9 +9,9 @@ using System.Runtime.InteropServices;
 
 public class MandelbrotSet
 {
-    public const int sizeX = 10000;
-    public const int sizeY = 10000;
-    public const int maxIteration = 1024;
+    public const int sizeX = 1000;
+    public const int sizeY = 1000;
+    public const int maxIteration = 128;
     public const bool smooth = false;
     public const bool histogram = true; // both cannot be true
 
