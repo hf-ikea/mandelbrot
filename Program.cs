@@ -9,9 +9,9 @@ using System.Runtime.InteropServices;
 
 public class MandelbrotSet
 {
-    public const int sizeX = 5000;
-    public const int sizeY = 5000;
-    public const int maxIteration = 512;
+    public const int sizeX = 10000;
+    public const int sizeY = 10000;
+    public const int maxIteration = 1024;
     public const bool smooth = false;
     public const bool histogram = true; // both cannot be true
 
@@ -133,12 +133,11 @@ public class MandelbrotSet
     {
         int count = 0;
         object countLock = new();
-
-        Console.Write("Histogramifying... ");
         int[] numIterationsPerPixel = new int[maxIteration + 1];
         double[,] hue = new double[sizeX, sizeY]; // between 0 and 1
 
         // Start histogram coloring
+        Console.Write("Histogramifying... ");
         ProgressBar progress = new();
         Parallel.For(0, sizeY, y => {
             for(int x = 0; x < sizeX; x++)
