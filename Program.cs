@@ -84,7 +84,7 @@ public class MandelbrotSet
             }
             else
             {
-                SetPixelColor(pixX, lineNum, palette[(pixX + lineNum) % palette.Length]);
+                SetPixelColor(pixX, lineNum, palette[(int)i - 1]);
             }
         }
     }
@@ -124,9 +124,9 @@ public class MandelbrotSet
         Console.WriteLine("Done!");
     }
 
-    public static void UpdateProgressBar(int progress, int total, ProgressBar progressBar)
+    public static void UpdateProgressBar(int count, int total, ProgressBar progressBar)
     {
-        progressBar.Report((float)progress / total);
+        progressBar.Report((float)count / total);
     }
 
     public static void HistogramColoring(int[,] iterationCounts, Color[] palette)
