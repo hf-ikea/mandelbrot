@@ -68,8 +68,8 @@ public class MandelbrotSet
             {
                 if(i < maxIteration)
                 {
-                    Color color1 = Palette((i - 1.0) / maxIteration);
-                    Color color2 = Palette( i        / maxIteration);
+                    Color color1 = palette[(int)i - 1];
+                    Color color2 = palette[(int)i];
 
                     SetPixelColor(pixX, lineNum, LinearInterpolateColor(color1, color2, i % 1.0));
                 }
@@ -202,17 +202,6 @@ public class MandelbrotSet
     public static void SetPixelColor(int x, int y, Color color)
     {
         imageBits[x + (y * sizeX)] = color.ToArgb();
-    }
-
-    public static Color Palette(double percent)
-    { 
-        double redPercent = Math.Min(2 - (percent * 2), 1);
-        double greenPercent = Math.Min(percent * 2, 1);
-
-        double red = 255f * redPercent;
-        double green = 255f * greenPercent;
-
-        return Color.FromArgb((int)red, (int)green, 0);
     }
 
     public static Color LinearInterpolateColor(Color color1, Color color2, double percent)
