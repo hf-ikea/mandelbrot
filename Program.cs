@@ -9,9 +9,9 @@ using System.Runtime.InteropServices;
 
 public class MandelbrotSet
 {
-    public const int sizeX = 1000;
-    public const int sizeY = 1000;
-    public const int maxIteration = 128;
+    public const int sizeX = 10000;
+    public const int sizeY = 10000;
+    public const int maxIteration = 512;
     public const bool smooth = false;
     public const bool histogram = true; // both cannot be true
 
@@ -59,7 +59,7 @@ public class MandelbrotSet
         return i;
     }
 
-    public static void RenderLine(int lineNum, ref int[,] iterationCounts, List<Color> palette, bool smooth)
+    public static void RenderLine(int lineNum, ref int[,] iterationCounts, Color[] palette, bool smooth)
     {
         for(int pixX = 0; pixX < sizeX; pixX++)
         {
@@ -84,26 +84,33 @@ public class MandelbrotSet
             }
             else
             {
-                SetPixelColor(pixX, lineNum, palette[(int)i]);
+                SetPixelColor(pixX, lineNum, palette[(pixX + lineNum) % palette.Length]);
             }
         }
     }
     public static void Main()
     {
-        List<Color> palette = GenerateGradient(maxIteration + 2); // create linear palette, works okay
+        Color[] colors = new Color[] { Color.Blue, Color.Red, Color.Lime};
+        Color[] palette = GenerateGradient(colors, maxIteration + 2); // create linear palette, works okay
         iterationCounts = new int[sizeX, sizeY];
+        int count = 0;
+        object countLock = new();
+
+        ProgressBar progress = new();
 
         // https://stackoverflow.com/questions/59454394/how-to-create-and-write-an-image-from-a-2d-array
         imageBits = new int[sizeX * sizeY];
         GCHandle handle = GCHandle.Alloc(imageBits, GCHandleType.Pinned);
         Bitmap bmp = new(sizeX, sizeY, sizeX * 4, PixelFormat.Format32bppPArgb, handle.AddrOfPinnedObject());
 
-        Console.WriteLine("Start escape algorithm");
+        Console.Write("Escaping...");
 
         // loop through every line
         Parallel.For(0, sizeY, line => {
             RenderLine(line, ref iterationCounts, palette, smooth);  // Really simple parallel processing
+            lock(countLock) { UpdateProgressBar(++count, sizeY, progress); }
         });
+        Console.WriteLine("Done.");
 
         Console.WriteLine("Finish escape algorithm");
 
@@ -117,32 +124,34 @@ public class MandelbrotSet
         Console.WriteLine("Done!");
     }
 
-    public static void HistogramColoring(int[,] iterationCounts, List<Color> palette)
+    public static void UpdateProgressBar(int progress, int total, ProgressBar progressBar)
+    {
+        progressBar.Report((float)progress / total);
+    }
+
+    public static void HistogramColoring(int[,] iterationCounts, Color[] palette)
     {
         Console.WriteLine("Start Histogram Coloring");
         int[] numIterationsPerPixel = new int[maxIteration + 1];
         double[,] hue = new double[sizeX, sizeY]; // between 0 and 1
 
         // Start histogram coloring
-        for(int x = 0; x < sizeX; x++)
-        {
-            for(int y = 0; y < sizeY; y++)
+        Parallel.For(0, sizeY, y => {
+            for(int x = 0; x < sizeX; x++)
             {
                 int i = iterationCounts[x, y];
                 numIterationsPerPixel[i]++;
             }
-        }
+        });
 
         // calculate totals for normalization
         double total = 0;
-        for(int i = 0; i < maxIteration; i++)
-        {
+        Parallel.For(0, maxIteration, i => {
             total += numIterationsPerPixel[i];
-        }
+        });
 
-        for(int x = 0; x < sizeX; x++)
-        {
-            for(int y = 0; y < sizeY; y++)
+        Parallel.For(0, sizeY, y => {
+            for(int x = 0; x < sizeX; x++)
             {
                 int iteration = iterationCounts[x, y];
                 for(int i = 0; i < iteration; i++)
@@ -150,7 +159,7 @@ public class MandelbrotSet
                     hue[x, y] += numIterationsPerPixel[i] / total;
                 }
             }
-        }
+        });
 
         // finish histogram, start coloring bitmap
         Parallel.For(0, sizeY, y => {
@@ -192,38 +201,28 @@ public class MandelbrotSet
         return color;
     }
 
-    public static List<Color> GenerateGradient(int numElements)
+    public static Color[] GenerateGradient(Color[] colors, int gradientSize)
     {
-        List<Color> gradientColors = new List<Color>();
-        
-        Color startColor = Color.Blue;
-        Color middleColor = Color.Red;
-        Color endColor = Color.Lime;
+        Color[] gradient = new Color[gradientSize];
 
-        int rStep = (middleColor.R - startColor.R) / (numElements / 2);
-        int gStep = (middleColor.G - startColor.G) / (numElements / 2);
-        int bStep = (middleColor.B - startColor.B) / (numElements / 2);
-
-        for (int i = 0; i < numElements / 2; i++)
+        for (int i = 0; i < gradientSize; i++)
         {
-            int r = startColor.R + i * rStep;
-            int g = startColor.G + i * gStep;
-            int b = startColor.B + i * bStep;
-            gradientColors.Add(Color.FromArgb(r, g, b));
+            double t = (double)i / (gradientSize - 1); // Interpolation parameter [0, 1]
+            int colorIndex1 = (int)(t * (colors.Length - 1));
+            int colorIndex2 = Math.Min(colorIndex1 + 1, colors.Length - 1);
+
+            Color color1 = colors[colorIndex1];
+            Color color2 = colors[colorIndex2];
+
+            double t2 = (t * (colors.Length - 1)) - colorIndex1;
+
+            int interpolatedR = (int)(color1.R + (color2.R - color1.R) * t2);
+            int interpolatedG = (int)(color1.G + (color2.G - color1.G) * t2);
+            int interpolatedB = (int)(color1.B + (color2.B - color1.B) * t2);
+
+            gradient[i] = Color.FromArgb(interpolatedR, interpolatedG, interpolatedB);
         }
 
-        rStep = (endColor.R - middleColor.R) / (numElements / 2);
-        gStep = (endColor.G - middleColor.G) / (numElements / 2);
-        bStep = (endColor.B - middleColor.B) / (numElements / 2);
-
-        for (int i = 0; i < numElements / 2; i++)
-        {
-            int r = middleColor.R + i * rStep;
-            int g = middleColor.G + i * gStep;
-            int b = middleColor.B + i * bStep;
-            gradientColors.Add(Color.FromArgb(r, g, b));
-        }
-
-        return gradientColors;
+        return gradient;
     }
 }
