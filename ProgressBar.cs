@@ -5,7 +5,7 @@ using System.Text;
 /// An ASCII progress bar
 /// </summary>
 public class ProgressBar : IDisposable, IProgress<double> {
-	private const int blockCount = 16;
+	private const int blockCount = 20;
 	private readonly TimeSpan animationInterval = TimeSpan.FromSeconds(1.0 / 10);
 	private const string animation = @"|/-\";
 

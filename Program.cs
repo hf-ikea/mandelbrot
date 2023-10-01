@@ -9,8 +9,8 @@ using System.Runtime.InteropServices;
 
 public class MandelbrotSet
 {
-    public const int sizeX = 3000;
-    public const int sizeY = 3000;
+    public const int sizeX = 5000;
+    public const int sizeY = 5000;
     public const int maxIteration = 512;
     public const bool smooth = false;
     public const bool histogram = true; // both cannot be true
@@ -103,7 +103,7 @@ public class MandelbrotSet
         GCHandle handle = GCHandle.Alloc(imageBits, GCHandleType.Pinned);
         Bitmap bmp = new(sizeX, sizeY, sizeX * 4, PixelFormat.Format32bppPArgb, handle.AddrOfPinnedObject());
 
-        Console.Write("Escaping...");
+        Console.Write("Escaping... ");
 
         // loop through every line
         Parallel.For(0, sizeY, line => {
@@ -113,8 +113,6 @@ public class MandelbrotSet
 
         progress.Dispose();
         Console.WriteLine("Done.");
-
-        Console.WriteLine("Finish escape algorithm");
 
         if(histogram && !smooth)
         {
@@ -133,25 +131,41 @@ public class MandelbrotSet
 
     public static void HistogramColoring(int[,] iterationCounts, Color[] palette)
     {
-        Console.WriteLine("Start Histogram Coloring");
+        int count = 0;
+        object countLock = new();
+
+        Console.Write("Histogramifying... ");
         int[] numIterationsPerPixel = new int[maxIteration + 1];
         double[,] hue = new double[sizeX, sizeY]; // between 0 and 1
 
         // Start histogram coloring
+        ProgressBar progress = new();
         Parallel.For(0, sizeY, y => {
             for(int x = 0; x < sizeX; x++)
             {
                 int i = iterationCounts[x, y];
                 numIterationsPerPixel[i]++;
+                lock(countLock) { UpdateProgressBar(++count, sizeY, progress); }
             }
         });
+        count = 0;
+        progress.Dispose();
+        Console.WriteLine("Done.");
 
         // calculate totals for normalization
+        Console.Write("Totaling... ");
+        progress = new();
         double total = 0;
         Parallel.For(0, maxIteration, i => {
             total += numIterationsPerPixel[i];
+            lock(countLock) { UpdateProgressBar(++count, maxIteration, progress); }
         });
+        count = 0;
+        progress.Dispose();
+        Console.WriteLine("Done.");
 
+        Console.Write("Normalizing... ");
+        progress = new();
         Parallel.For(0, sizeY, y => {
             for(int x = 0; x < sizeX; x++)
             {
@@ -161,9 +175,15 @@ public class MandelbrotSet
                     hue[x, y] += numIterationsPerPixel[i] / total;
                 }
             }
+            lock(countLock) { UpdateProgressBar(++count, sizeY, progress); }
         });
+        count = 0;
+        progress.Dispose();
+        Console.WriteLine("Done.");
 
         // finish histogram, start coloring bitmap
+        Console.Write("Coloring... ");
+        progress = new();
         Parallel.For(0, sizeY, y => {
             for(int x = 0; x < sizeX; x++)
             {
@@ -172,8 +192,11 @@ public class MandelbrotSet
                 //SetPixelColor(x, y, Palette(Math.Pow(huePoint, 5)));
                 SetPixelColor(x, y, palette[(int)Math.Round(Math.Pow(huePoint, 5) * (maxIteration - 1))]); // exponetial coloring is more pleasing
             }
+            lock(countLock) { UpdateProgressBar(++count, sizeY, progress); }
         });
-
+        count = 0;
+        progress.Dispose();
+        Console.WriteLine("Done.");
     }
 
     public static void SetPixelColor(int x, int y, Color color)
